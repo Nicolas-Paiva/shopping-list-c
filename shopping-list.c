@@ -56,6 +56,9 @@ int countShopListItems(ShopItem *shoppingList);
 // Returns the index of a certain item if it is in the list
 int findItem(ShopItem *shoppingList, char *itemName);
 
+// Adds new items to the end of the list
+void addNewItems(ShopItem *shoppingList);
+
 //////////////////////////////////
 // ### DISPLAY FUNCTIONS
 
@@ -68,7 +71,20 @@ void formatItemName(char *itemName);
 // Shows an item from the list
 void showListItem(ShopItem *shoppingList, int index);
 
+// Shows the initial menu so that the user can decide whether or not to create a new shopping list
 void showInitialMenu();
+
+// For display/organisation purposes
+void horizontalBar();
+
+// Once the user creates/loads a shopping list, they will have the options to display the list, select an item to display, modify an item, etc
+void showMainMenu();
+
+void menuReset(int *option);
+
+void addWhiteSpace();
+
+// #TODO: Add a feature to save the shopping list to a file so that it can be saved/loaded and so on.
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -78,45 +94,88 @@ int main(void)
   int itemsTotal;
   int option;
 
+  // INITIAL MENU
   showInitialMenu();
 
   scanf("%d", &option);
   getchar();
 
-  if (option == 1)
+  if (option == 1) // CREATES A NEW LIST
   {
     initPointers(shoppingListArr, MAXITEMS);
     createShoppingList(shoppingListArr, MAXITEMS);
-    showShoppingList(shoppingListArr);
-    itemsTotal = countShopListItems(shoppingListArr);
-    printf("Total items: %d\n", itemsTotal);
   }
-  else if (option == 2)
+  else if (option == 2) // EXIT
   {
-    abort();
+    exit(1);
   }
 
-  putchar('\n');
-  printf("-------------------");
-  putchar('\n');
+  showMainMenu();
 
-  printf("Product: ");
+  scanf("%d", &option);
+  getchar();
 
-  char itemName[MAXSTR];
-  fgets(itemName, MAXSTR, stdin);
-  itemName[strlen(itemName) - 1] = '\0';
+  while (option != 6)
+  {
+    // SHOWS THE LIST
+    if (option == 1)
+    {
+      showShoppingList(shoppingListArr);
+      itemsTotal = countShopListItems(shoppingListArr);
+      printf("Total items: %d\n", itemsTotal);
 
-  int listIndex = findItem(shoppingListArr, itemName);
+      menuReset(&option);
+    }
 
-  showListItem(shoppingListArr, listIndex);
+    // FINDS AND DISPLAY AN ITEM OF THE LIST (IF IT EXISTS)
+    else if (option == 2)
+    {
+      char itemName[MAXSTR];
+
+      printf("Item: ");
+      fgets(itemName, MAXSTR, stdin);
+      itemName[strlen(itemName) - 1] = '\0';
+
+      int listIndex = findItem(shoppingListArr, itemName);
+
+      if (listIndex >= 0)
+      {
+        showListItem(shoppingListArr, listIndex);
+      }
+      else
+      {
+        printf("Item does not exist\n");
+      }
+      menuReset(&option);
+    }
+
+    // ADDS MORE ITEMS TO THE LIST
+    else if (option == 3)
+    {
+      addNewItems(shoppingListArr);
+      showShoppingList(shoppingListArr);
+      menuReset(&option);
+    }
+  }
 
   freeMemoryAndReset(shoppingListArr);
 
   return 0;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUNCTION DEFINITIONS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// ### LIST INITIALISATION/CREATION/MEMORY
+void initPointers(ShopItem *shoppingList, int numItems)
+{
+  for (int i = 0; i < numItems; i++)
+  {
+    shoppingList[i].name = NULL;
+    shoppingList[i].amount = 0;
+  }
+  return;
+}
 
 void addShopItem(ShopItem *shoppingList, int shopListIndex)
 {
@@ -125,14 +184,14 @@ void addShopItem(ShopItem *shoppingList, int shopListIndex)
 
   // Adds a name to the item
   putchar('\n');
-  printf("Please, introduce item number %d: ", shopListIndex + 1);
+  printf("Item %d: ", shopListIndex + 1);
   fgets(itemName, MAXSTR, stdin);
   itemName[strlen(itemName) - 1] = '\0';
 
   // Ensures that the item has a name
   while (strlen(itemName) == 0)
   {
-    printf("The product's name cannot be empty.\n");
+    printf("The name cannot be empty.\n");
     printf("Please, introduce item number %d: ", shopListIndex + 1);
     fgets(itemName, MAXSTR, stdin);
     itemName[strlen(itemName) - 1] = '\0';
@@ -163,6 +222,7 @@ void addShopItem(ShopItem *shoppingList, int shopListIndex)
   putchar('\n');
   if (confirmItemToList(&ListItem) == false)
   {
+    free(ListItem.name);
     return addShopItem(shoppingList, shopListIndex);
   }
   else
@@ -172,8 +232,6 @@ void addShopItem(ShopItem *shoppingList, int shopListIndex)
   return;
 }
 
-////////////////////////
-
 void createShoppingList(ShopItem *shoppingList, int MAXITEMS)
 {
   int shopListIndex = 0;
@@ -181,7 +239,7 @@ void createShoppingList(ShopItem *shoppingList, int MAXITEMS)
   {
     addShopItem(shoppingList, shopListIndex);
 
-    printf("Add another item? Press 'n' to exit\n");
+    printf("Add another item? Press return to continue, 'n' to exit\n");
 
     char addMore;
     scanf("%c", &addMore);
@@ -197,27 +255,15 @@ void createShoppingList(ShopItem *shoppingList, int MAXITEMS)
   return;
 }
 
-////////////////////////
-
-void initPointers(ShopItem *shoppingList, int numItems)
-{
-  for (int i = 0; i < numItems; i++)
-  {
-    shoppingList[i].name = NULL;
-    shoppingList[i].amount = 0;
-  }
-  return;
-}
-
-////////////////////////
-
 bool confirmItemToList(ShopItem *Item)
 {
   char confirmation;
   printf("Confirm item:\n");
+  horizontalBar();
   printf("Product: %s\n", Item->name);
   printf("Amount: %d\n", Item->amount);
-  printf("Press return to confirm, \"n\" to cancel\n");
+  horizontalBar();
+  printf("Return to confirm, \"n\" to cancel\n");
 
   getchar(); // Consumes the '\n' left in the buffer
   scanf("%c", &confirmation);
@@ -231,25 +277,19 @@ bool confirmItemToList(ShopItem *Item)
   return true;
 }
 
-////////////////////////
-
-void showShoppingList(ShopItem *shoppingList)
+void freeMemoryAndReset(ShopItem *shoppingList)
 {
   int i = 0;
-  printf("Current Shopping List:\n");
-  while (shoppingList[i].name != NULL)
+  while (i < MAXITEMS && shoppingList[i].name != NULL)
   {
-    printf("------------------\n");
-    printf("Product %d: %s\n", i + 1, shoppingList[i].name);
-    printf("Amount: %d\n", shoppingList[i].amount);
-    printf("------------------");
+    free(shoppingList[i].name);
+    shoppingList[i].amount = 0;
     i++;
   }
-  putchar('\n');
-  return;
 }
 
-////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ### LIST INTERACTION
 
 int countShopListItems(ShopItem *shoppingList)
 {
@@ -261,12 +301,10 @@ int countShopListItems(ShopItem *shoppingList)
   return counter;
 }
 
-////////////////////////
-
 int findItem(ShopItem *shoppingList, char *itemName)
 {
   int i = 0;
-  while (shoppingList[i].name != NULL && i < MAXITEMS)
+  while (i < MAXITEMS && shoppingList[i].name != NULL)
   {
     int equalStr = strcasecmp(shoppingList[i].name, itemName);
     if (equalStr == 0)
@@ -277,8 +315,6 @@ int findItem(ShopItem *shoppingList, char *itemName)
   }
   return -1;
 }
-
-////////////////////////
 
 void formatItemName(char *itemName)
 {
@@ -293,26 +329,61 @@ void formatItemName(char *itemName)
   return;
 }
 
-////////////////////////
+void addNewItems(ShopItem *shoppingList)
+{
+  // First we get the index where the item will be placed:
+  int index = countShopListItems(shoppingList);
+  while (index < MAXITEMS)
+  {
+    char verify;
+    addShopItem(shoppingList, index);
+    printf("Add more items? (press 'n' to leave)");
+    scanf("%c", &verify);
+
+    if (verify == 'n')
+    {
+      getchar();
+      break;
+    }
+    index++;
+  }
+  return;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ### LIST/ITEM DISPLAY
+
+void showShoppingList(ShopItem *shoppingList)
+{
+  int i = 0;
+  horizontalBar();
+  printf("%sCurrent Shopping List:%s\n", YELLOW, RESET);
+  while (shoppingList[i].name != NULL)
+  {
+    horizontalBar();
+    printf("%sProduct %d:%s %s\n", BOLD, i + 1, RESET, shoppingList[i].name);
+    printf("%sAmount:%s %d\n", BOLD, RESET, shoppingList[i].amount);
+    i++;
+  }
+  putchar('\n');
+  return;
+}
 
 void showListItem(ShopItem *shoppingList, int index)
 {
+  horizontalBar();
   printf("Item: %s\n", shoppingList[index].name);
   printf("Amount: %d\n", shoppingList[index].amount);
+  horizontalBar();
 }
 
-////////////////////////
-
-void freeMemoryAndReset(ShopItem *shoppingList)
+void horizontalBar()
 {
-  int i = 0;
-  while (i < 50 && shoppingList[i].name != NULL)
-  {
-    free(shoppingList[i].name);
-    shoppingList[i].amount = 0;
-    i++;
-  }
+  printf("------------------\n");
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ### MENU
 
 void showInitialMenu()
 {
@@ -320,8 +391,41 @@ void showInitialMenu()
   printf("%sWelcome to your shopping list!\n%s", BRED, RESET);
   printf("%s----------------------------------\n", BOLD);
   putchar('\n');
-  printf("Options:\n%s", RESET);
+  horizontalBar();
+  printf("Options:\n");
   printf("1- Create New List\n");
-  printf("2- Quit\n");
+  printf("2- Quit\n%s", RESET);
+  horizontalBar();
   putchar('\n');
+}
+
+void showMainMenu()
+{
+  putchar('\n');
+  printf("%s----------------------------------\n", BOLD);
+  printf("%sACTIONS:\n%s", BRED, RESET);
+  printf("%s----------------------------------\n", BOLD);
+  printf("1- Show List\n");
+  printf("2- Find item\n");
+  printf("3- Add more items\n");
+  printf("4- Save list\n");
+  printf("5- Create new list\n");
+  printf("6- Quit\n%s", RESET);
+}
+
+void addWhiteSpace()
+{
+  for (int i = 0; i < 2; i++)
+  {
+    putchar('\n');
+  }
+  return;
+}
+
+void menuReset(int *option)
+{
+  showMainMenu();
+  scanf("%d", option);
+  getchar();
+  return;
 }

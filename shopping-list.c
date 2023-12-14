@@ -30,6 +30,10 @@ typedef struct
 // FUNCTION PROTOTYPES
 
 //////////////////////////////////
+// ### MAIN
+void newList(ShopItem *shoppingList, int MAXITEMS);
+
+//////////////////////////////////
 // ### INITIALISATION AND CREATION OF THE LIST
 
 // Initialiss the items in the array
@@ -84,7 +88,14 @@ void menuReset(int *option);
 
 void addWhiteSpace();
 
-// #TODO: Add a feature to save the shopping list to a file so that it can be saved/loaded and so on.
+//////////////////////////////////
+// ### FILE HANDLING
+
+// TODO Learn how to preperly write to a file
+void saveList(ShopItem *shoppingList);
+
+// TODO Function that will read a shopping list from a file
+void loadList();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -92,43 +103,43 @@ int main(void)
 {
   ShopItem shoppingListArr[MAXITEMS];
   int itemsTotal;
-  int option;
+  int initOption;
+  int mainMenuOption;
 
   // INITIAL MENU
   showInitialMenu();
 
-  scanf("%d", &option);
+  scanf("%d", &initOption);
   getchar();
 
-  if (option == 1) // CREATES A NEW LIST
+  if (initOption == 1) // CREATES A NEW LIST
   {
-    initPointers(shoppingListArr, MAXITEMS);
-    createShoppingList(shoppingListArr, MAXITEMS);
+    newList(shoppingListArr, MAXITEMS);
   }
-  else if (option == 2) // EXIT
+  else if (initOption == 2) // EXIT
   {
     exit(1);
   }
 
   showMainMenu();
 
-  scanf("%d", &option);
+  scanf("%d", &mainMenuOption);
   getchar();
 
-  while (option != 6)
+  while (mainMenuOption != 6)
   {
     // SHOWS THE LIST
-    if (option == 1)
+    if (mainMenuOption == 1)
     {
       showShoppingList(shoppingListArr);
       itemsTotal = countShopListItems(shoppingListArr);
       printf("Total items: %d\n", itemsTotal);
 
-      menuReset(&option);
+      menuReset(&mainMenuOption);
     }
 
     // FINDS AND DISPLAY AN ITEM OF THE LIST (IF IT EXISTS)
-    else if (option == 2)
+    else if (mainMenuOption == 2)
     {
       char itemName[MAXSTR];
 
@@ -146,15 +157,15 @@ int main(void)
       {
         printf("Item does not exist\n");
       }
-      menuReset(&option);
+      menuReset(&mainMenuOption);
     }
 
     // ADDS MORE ITEMS TO THE LIST
-    else if (option == 3)
+    else if (mainMenuOption == 3)
     {
       addNewItems(shoppingListArr);
       showShoppingList(shoppingListArr);
-      menuReset(&option);
+      menuReset(&mainMenuOption);
     }
   }
 
@@ -165,6 +176,14 @@ int main(void)
 
 // FUNCTION DEFINITIONS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// ### MAIN
+
+void newList(ShopItem *shoppingList, int MAXITEMS)
+{
+  initPointers(shoppingList, MAXITEMS);
+  createShoppingList(shoppingList, MAXITEMS);
+}
 
 // ### LIST INITIALISATION/CREATION/MEMORY
 void initPointers(ShopItem *shoppingList, int numItems)
@@ -428,4 +447,16 @@ void menuReset(int *option)
   scanf("%d", option);
   getchar();
   return;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ### FILE HANDLING
+
+void saveList(ShopItem *shoppingList)
+{
+  char fileName[MAXSTR];
+  printf("Please choose the name of the file: ");
+  fgets(fileName, MAXSTR, stdin);
+
+  FILE *fp = fopen("%s.txt", "w");
 }

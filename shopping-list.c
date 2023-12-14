@@ -84,7 +84,6 @@ void horizontalBar();
 // Once the user creates/loads a shopping list, they will have the options to display the list, select an item to display, modify an item, etc
 void showMainMenu();
 
-// Displays the main menu again
 void menuReset(int *option);
 
 void addWhiteSpace();
@@ -92,8 +91,11 @@ void addWhiteSpace();
 //////////////////////////////////
 // ### FILE HANDLING
 
-// TODO Learn how to preperly write to a file
-void saveList(ShopItem *shoppingList);
+// Creates a file containing the list
+void createFile(ShopItem *shoppingList);
+
+// Effectively writes the list to the file
+void writeList(FILE *file, ShopItem *shoppingList, int MAXITEMS);
 
 // TODO Function that will read a shopping list from a file
 void loadList();
@@ -166,6 +168,12 @@ int main(void)
     {
       addNewItems(shoppingListArr);
       showShoppingList(shoppingListArr);
+      menuReset(&mainMenuOption);
+    }
+
+    else if (mainMenuOption == 4)
+    {
+      createFile(shoppingListArr);
       menuReset(&mainMenuOption);
     }
   }
@@ -453,11 +461,42 @@ void menuReset(int *option)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ### FILE HANDLING
 
-void saveList(ShopItem *shoppingList)
+void createFile(ShopItem *shoppingList)
 {
   char fileName[MAXSTR];
+  char fileNameExt[MAXSTR];
   printf("Please choose the name of the file: ");
   fgets(fileName, MAXSTR, stdin);
 
-  FILE *fp = fopen("%s.txt", "w");
+  strcpy(fileNameExt, fileName);
+  strcat(fileNameExt, ".txt");
+
+  FILE *fp = fopen(fileNameExt, "w");
+
+  if (fp == NULL)
+  {
+    fprintf(stderr, "Error creating the file.");
+    exit(2);
+  }
+
+  fprintf(fp, "Shopping List: %s", fileName);
+  fprintf(fp, "\n");
+  writeList(fp, shoppingList, MAXITEMS);
+
+  fclose(fp);
+}
+
+void writeList(FILE *file, ShopItem *shoppingList, int MAXITEMS)
+{
+  int i = 0;
+  while (i < MAXITEMS && shoppingList[i].name != NULL)
+  {
+    fprintf(file, "Item: %s", shoppingList[i].name);
+    fputc('\n', file);
+    fprintf(file, "Amount: %d", shoppingList[i].amount);
+    fputc('\n', file);
+    fputc('\n', file);
+    i++;
+  }
+  return;
 }

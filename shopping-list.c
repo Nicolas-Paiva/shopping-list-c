@@ -84,6 +84,7 @@ void horizontalBar();
 // Once the user creates/loads a shopping list, they will have the options to display the list, select an item to display, modify an item, etc
 void showMainMenu();
 
+// Displays the main menu again
 void menuReset(int *option);
 
 void addWhiteSpace();

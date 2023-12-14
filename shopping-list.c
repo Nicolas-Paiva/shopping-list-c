@@ -125,6 +125,7 @@ int main(void)
     exit(1);
   }
 
+  // MAIN MENU
   showMainMenu();
 
   scanf("%d", &mainMenuOption);
@@ -188,7 +189,6 @@ int main(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // ### MAIN
-
 void newList(ShopItem *shoppingList, int MAXITEMS)
 {
   initPointers(shoppingList, MAXITEMS);
